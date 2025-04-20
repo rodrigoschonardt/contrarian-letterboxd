@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Letterboxd Contrarian</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"> 
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Letterboxd Contrarian</h1>
+        <p class="subtitle">Submit your ratings.csv file bellow to see how much of a contrarian you are.</p>
+        
+        <div id="main">
+            <form
+            x-data="{ 
+                dragActive: false, 
+                fileName: null,
+                handleDrop(e) {
+                    this.dragActive = false;
+                    e.preventDefault();
+                    if (e.dataTransfer.files.length) {
+                        this.fileName = e.dataTransfer.files[0].name;
+                        document.getElementById('file-input').files = e.dataTransfer.files;
+                    }
+                },
+                handleFileInput(e) {
+                    if (e.target.files.length) {
+                        this.fileName = e.target.files[0].name;
+                    }
+                }
+            }" 
+            class="upload-area" 
+            @dragover.prevent="dragActive = true" 
+            @dragleave.prevent="dragActive = false" 
+            @drop="handleDrop"
+            :style="dragActive ? 'border-color: #5dd8b7' : ''"
+            enctype="multipart/form-data"
+            hx-encoding="multipart/form-data"
+            hx-post="/analyze"
+            hx-target="#main"
+            hx-indicator="#loading-indicator"
+        >
+            <button type="button" class="upload-button" @click="document.getElementById('file-input').click()">
+                <i class="fa-solid fa-upload icon"></i>
+                Choose a file...
+            </button>
+            <input type="file" id="file-input" name="csvFile" accept=".csv" @change="handleFileInput">
+            <p class="upload-text">Drag and drop files here or click to browse</p>
+            <p class="file-name" x-show="fileName" x-cloak>
+                <i class="fa-solid fa-check-circle"></i> Selected file: <span x-text="fileName"></span>
+            </p>
+            
+            <button 
+                type="submit"
+                class="submit-button" 
+                :class="{ 'disabled': !fileName }"
+                :disabled="!fileName"
+            >
+                <i class="fa-solid fa-paper-plane icon"></i>
+                Analyze Ratings
+            </button>
+            <div class="htmx-indicator" id="loading-indicator">
+                <i class="fa-solid fa-spinner fa-spin"></i> Processing...
+            </div>
+        </form>
+        </div> 
+    </div>
+</body>
+</html>
